@@ -16,7 +16,7 @@ export class Factura extends BaseEntity {
     @CreateDateColumn()
     fechaHora:string
 
-    @Column("numeric")
+    @Column("float")
     @IsNotEmpty({message:"Debe ingresar el monto total de la factura"})
     @IsPositive({message:"Debe ser un numero positivo"})
     @Max(1000,{message:"El monto no puede superar los 1000 dolares"})

@@ -10,6 +10,7 @@ async function armarMensaje (fecha:string,telefono:string, cliente:string, pedid
   let pedidoOrdenado:string = ""
   let montoTo = montoTotal.toString()
   let formatoFecha:string = moment(fecha).format('DD/MM/YYYY h:mm a')
+  let totalProductos:number = 0
 
   if(precioDolar.length > 0){
     dolar = parseFloat(precioDolar.replace(/,/g, '.'))
@@ -22,29 +23,29 @@ async function armarMensaje (fecha:string,telefono:string, cliente:string, pedid
     let cantidadArticulo = articulo.cantidad.toString()
     let precioArticulo = articulo.precio.toString()
     let monto = (articulo.precio * articulo.cantidad).toString()
+    totalProductos += articulo.cantidad
 
     pedidoOrdenado += `\n${articulo.nombreProducto}  \n ${articulo.descripcion}\n
                             $${precioArticulo}            ${cantidadArticulo}             $${monto} \n`
 
   })
 
-  return `Pedido recibido desde la app web Restaurant los cinco mejores sabores\n
+  return `Restaurant los cinco mejores sabores\n
 Fecha: ${formatoFecha}\n
 Cliente: ${cliente}\n
 Telefono: ${telefono}\n
 Pedido: \n
 Descripcion   Precio   Cantidad    Monto
 ${pedidoOrdenado} \n
-Monto Total: $${montoTo}\n
-Taza BCV: ${precioDolar}\n
-Total Monto en Bolivares: ${montoTotalBolivares} BS\n
+MONTO TOTAL: $${montoTo}\n
+Cantidad Total de Productos: ${totalProductos}\n
+NOTA:\n
+Por favor espere que su pedido sea verificado por el Administrador. Luego de que usted reciba la confirmacion y el monto en bolivares de su pedido podrá realizar su pago. Muchas gracias\n
+
 Datos de Pago movil: \n
 Tlf: 0424-9683161
 Ci: 18.026.098
-Bancos: Venezuela 0102 / Mercantil 0105
-
-NOTA:\n
-Por favor espere que su pedido sea verificado por el Administrador. Luego de que reciba la confirmacion de su pedido podra proseguir en realizar su pago. Muchas gracias`
+Bancos: Venezuela 0102 / Mercantil 0105`
 
 }
 

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany,BaseEntity } from "typeorm";
 import {Foto} from "./Foto";
 import {Pedido} from "./Pedido";
-import {SoloLetras} from "../validadores/SoloLetras"
+import {LetrasNumeros} from "../validadores/SoloLetras"
 import {
   Validate,
   IsNotEmpty,
@@ -28,7 +28,7 @@ export class Producto extends BaseEntity {
     @IsNotEmpty({message:"El producto debe tener un nombre"})
     @Length(3,30,{message:"El nombre del producto debe contener mas de 3 caracteres y no mas de 30"})
     @IsString()
-    @Validate(SoloLetras)
+    @Validate(LetrasNumeros)
     nombreProducto:string;
 
     @Column({
@@ -47,7 +47,7 @@ export class Producto extends BaseEntity {
     @MaxLength(255,{message:"Descripcion no debe tener mas de 255 caracteres"})
     descripcion:string;
 
-    @Column("numeric")
+    @Column("float")
     @IsNotEmpty({message:"Ingrese precio del producto"})
     @Max(15,{message:"El precio no debe exceder de mas 15 dolares"})
     precio:number;

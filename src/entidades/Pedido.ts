@@ -21,7 +21,7 @@ export class Pedido extends BaseEntity{
     @MaxLength(50,{message:"La descripcion del pedido no puede tener mas de 50 caracteres"})
     descripcion:string;
 
-    @Column("numeric")
+    @Column("float")
     @IsNotEmpty({message:"Debe ingresarle un precio al pedido"})
     @Max(15,{message:"El precio no puede ser mas de 15 dolares"})
     precio: number;

@@ -2,6 +2,7 @@ import {Request,Response} from "express";
 import {Factura} from "../entidades/Factura";
 import {Usuario} from "../entidades/Usuario";
 import {Pedido} from "../entidades/Pedido";
+import {Producto} from "../entidades/Producto";
 import {validate} from "class-validator";
 import {armarMensaje} from "../utils/ordenarMensaje.util"
 // import container from "../utils/ioc.util"
@@ -78,7 +79,6 @@ export const obtenerListaFacturaPorIdUsuario = async (req:Request, res:Response)
 }
 
 export const generarFactura = async (req:Request,res:Response)=>{
-
     try{
         let {
             usuario,
@@ -105,9 +105,12 @@ export const generarFactura = async (req:Request,res:Response)=>{
         listaPedidos.forEach(async (pedido:Pedido) => {  // Una factura puede contener varios pedidos,
                                                 //por lo tanto se debe crear varios pedidos con la misma factura
           const entidadPedido = new Pedido();
-
+          const producto = await Producto.findOneBy({id:pedido.id})
+          if(!producto){
+            return res.status(406).json({error:"El producto no esta creado"})
+          }
           entidadPedido.factura = factura;
-          entidadPedido.producto = pedido.producto;
+          entidadPedido.producto = producto;
           entidadPedido.precio = pedido.precio;
           entidadPedido.cantidad = pedido.cantidad;
           entidadPedido.descripcion = pedido.descripcion;
