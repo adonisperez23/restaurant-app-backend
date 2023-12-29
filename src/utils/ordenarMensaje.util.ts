@@ -1,23 +1,11 @@
 import moment from "moment"
-import {obtenerValorDolar} from "./scrapingValorDolar.utils"
-
 
 // metodo para armar el mensaje que se enviara al whatsap de la persona encargada de recibir los pedidos
 async function armarMensaje (fecha:string,telefono:string, cliente:string, pedido:Array<{producto:number,nombreProducto:string,cantidad:number,precio:number,descripcion:string}>, montoTotal:number):Promise<string>{
-  const precioDolar = await obtenerValorDolar()
-  let dolar:number = 0
-  let montoTotalBolivares:string = ""
   let pedidoOrdenado:string = ""
   let montoTo = montoTotal.toString()
   let formatoFecha:string = moment(fecha).format('DD/MM/YYYY h:mm a')
   let totalProductos:number = 0
-
-  if(precioDolar.length > 0){
-    dolar = parseFloat(precioDolar.replace(/,/g, '.'))
-    montoTotalBolivares = (montoTotal * dolar).toString()
-  }else {
-    montoTotalBolivares = "Sin poder Calcular"
-  }
 
   pedido.forEach((articulo)=>{
     let cantidadArticulo = articulo.cantidad.toString()

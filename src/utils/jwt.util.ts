@@ -3,7 +3,7 @@ import app from "../app"
 //Modulo para generar JWT
 export function generarToken(payload:object):string {
 
-  return jwt.sign(payload,app.get('llave'),{expiresIn:"7 days"}) // Genera un Token que expira en 7 dias
+  return jwt.sign(payload,app.get('llave'),{expiresIn:"180 days"}) // Genera un Token que expira en 180 dias
                                                              // Los token les dara permiso al usuario
                                                              // de ejecutar ciertas acciones dentro de la cesion en la app.
 }

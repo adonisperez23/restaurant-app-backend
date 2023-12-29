@@ -154,7 +154,7 @@ export const verificacionToken = async (req:Request, res:Response, next:any)=>{
         let decodificar = await verificarToken(token)
         if(decodificar){next()}
     }catch(error){
-        res.status(400).json({error:"Token invalido o caducado los 7 dias de vigencia, reinicie sesion para obtener nuevo token"})
+        res.status(400).json({error:"Token invalido o caducado los 180 dias de vigencia, reinicie sesion para obtener nuevo token"})
     }
 
 }

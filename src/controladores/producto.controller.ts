@@ -20,40 +20,29 @@ export const obtenerProductos = async (req:Request,res:Response) =>{
 // API que verifica si un registro de producto tiene algun registro con otra tabla relacionada
 export const verificarRelacionesProducto = async (req:Request,res:Response) =>{
 
-  let relacionadoConPedido:boolean
-  let relacionadoConFoto:boolean
-
     try {
         const {productoId} = req.params// recibe id del producto a verificar
-        const pedidos = await Pedido.find({
-          select:{
-            id:true,
-          },
-          relations:{
-            producto:true,
-          }
-        });; // lista Pedidos
-        const fotos = await Foto.find({
-          select:{
-            id:true
-          },
-          relations:{
-            producto:true
-          }
-        }); // lista fotos
+        let producto = Number(productoId)
+        const pedidos = await Pedido.createQueryBuilder("pedido")
+           .leftJoinAndSelect("pedido.producto", "producto")
+           .where("producto.id = :producto", { producto })
+           .getMany()
+         // lista Pedidos
+        const fotos = await Foto.createQueryBuilder("foto")
+           .leftJoinAndSelect("foto.producto", "producto")
+           .where("producto.id = :producto", { producto })
+           .getMany()
+         // lista fotos
 
-        relacionadoConPedido = pedidos.some(pedido => pedido.producto.id === +productoId)
-        relacionadoConFoto = pedidos.some(foto => foto.producto.id === +productoId)
-
-        if(relacionadoConPedido || relacionadoConFoto){
-          res.status(200).json({estaRelacionado:true});
+        if(fotos.length > 0 || pedidos.length > 0){
+          return res.status(200).json({estaRelacionado:true});
         } else {
-          res.status(200).json({estaRelacionado:false});
+          return res.status(200).json({estaRelacionado:false});
         }
 
     }
     catch(error){
-        res.status(404).json({error:"Error al Verificar relaciones de productos"})
+        return res.status(404).json({error:"Error al Verificar relaciones de productos"})
     }
 }
 

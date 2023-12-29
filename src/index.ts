@@ -1,15 +1,12 @@
 import "reflect-metadata";
 import {Request, Response} from "express";
 import app from "./app";
-// import {localDataSource} from "./db"; // tenemos la instancia en el contenedor de dependencias
-import container from "./utils/ioc.util"
-
-const localDataSource = container.get('localDataSource') //Usamos el contenedor de node-injection-dependency
+import {LocalDataSource} from "./utils/dataSource.util"; // tenemos la instancia en el contenedor de dependencias
 
 const PORT = process.env.PORT || 3000;
 async function main(){
     try{
-
+        const localDataSource = new LocalDataSource()
         // creando instancia con la configuracion de la bases de datos local
         await localDataSource
         .initialize()

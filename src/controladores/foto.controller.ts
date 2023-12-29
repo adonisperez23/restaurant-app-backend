@@ -2,6 +2,12 @@ import {Request,Response} from "express";
 import {Foto} from "../entidades/Foto";
 import {Producto} from "../entidades/Producto";
 import {validate} from "class-validator";
+import {generarId} from "../utils/uuidGenerator"
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand
+} from "@aws-sdk/client-s3";
 const fs = require('fs').promises
 require('dotenv').config()
 
@@ -44,24 +50,60 @@ export const obtenerFotoId = async (req:Request, res:Response) => {
     }
 }
 
-export const subirFoto = async (req:Request,res:Response)=>{
-
+export const subirFotoBucketAws = async (req:Request,res:Response)=>{
     try{
+
         let {
-            nombreFoto,
-            direccionUrl,
-            id} = req.body;
+            data
+            } = req.body;
 
-        const buscarProducto = await Producto.findOneBy({id:id});
+        let infoFoto =  JSON.parse(data)
+        let uuid = generarId()
+        let nombreFoto:string = ''
+        console.log("body",data)
+        console.log("imagen",req.file)
 
-        if(!buscarProducto){
+        if(req.file != undefined && process.env.AWS_REGION !=undefined && process.env.AWS_PUBLIC_KEY !=undefined && process.env.AWS_SECRET_KEY !=undefined && process.env.AWS_BUCKET_NAME != undefined ){
+
+          nombreFoto = uuid+req.file.originalname
+
+          let credenciales = {
+            region:process.env.AWS_REGION,
+            credentials:{
+              accessKeyId:process.env.AWS_PUBLIC_KEY,
+              secretAccessKey:process.env.AWS_SECRET_KEY
+            },
+          }
+
+          let parametrosDeCargaImagen = {
+            Bucket:process.env.AWS_BUCKET_NAME,
+            Body: req.file.buffer,
+            Key: nombreFoto,
+          }
+
+          const putCommand = new PutObjectCommand(parametrosDeCargaImagen)
+          const s3Client = new S3Client(credenciales)
+          const resultado = await s3Client.send(putCommand)
+          if(resultado.$metadata.httpStatusCode != 200){
+            return res.status(400).json({error:"No se pudo guardar la imagen en el bucket s3"})
+          }
+        } else {
+          return res.status(400).json({error:"Debe adjuntar una imagen para cargar"})
+        }
+
+
+
+        const producto = await Producto.findOneBy({id:infoFoto.id});
+
+        if(!producto){
             return res.status(400).json({error:"El producto que selecciono no existe, ingrese otro nuevamente"});
         }
+
         const foto = new Foto();
 
-        foto.nombreFoto = nombreFoto;
-        foto.direccionUrl = direccionUrl;
-        foto.producto = id;
+        foto.nombreFoto = infoFoto.nombreFoto;
+        foto.direccionUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${nombreFoto}`;
+        foto.producto = producto;
 
         const errores = await validate(foto,{ validationError: { target: false } });
 
@@ -77,73 +119,51 @@ export const subirFoto = async (req:Request,res:Response)=>{
     }
 }
 
-export const modificarFoto = async (req:Request, res:Response)=>{
-    try{
-        const foto = await Foto.findOneBy({id: parseInt(req.params.id)});
-
-        if(!foto){
-            return res.status(404).json({error:`Foto con el id no existe:${req.params.id}`});
-        };
-        let {nombreFoto, direccionUrl, producto} = req.body;
-
-        foto.nombreFoto = nombreFoto;
-        foto.direccionUrl = direccionUrl;
-        foto.producto = producto;
-
-        const errores = await validate(foto, { validationError: { target: false } });
-
-        if(errores.length > 0){
-          return res.status(406).send(errores);
-        } else {
-          // await Foto.update({id:parseInt(req.params.id)}, req.body);
-          await foto.save();
-          res.status(201).json({mensaje:`foto modificada con el id ${req.params.id}`});
-        }
-
-    }catch(error){
-        res.status(400).json({error:`Ha ocurrido un error al modificar foto: ${error}`});
-    }
-}
 
 export const borrarFoto = async (req:Request, res:Response) =>{
 
     try{
         const foto = await Foto.findOneBy({id: parseInt(req.params.id)});
-        console.log("headers", req.headers)
+        // console.log("headers", req.headers)
         if(!foto){
             return res.status(404).json({error:"La foto que desea eliminar con el id no existe"});
         } else {
           try {
-            await fs.unlink(`./${foto.direccionUrl.replace(`${process.env.PROTOCOLO_HTTP}${process.env.IP_SERVER}/`,"")}`)
+            let nombreFotoEliminar = foto.direccionUrl.split('.com/')
+            if(process.env.AWS_REGION !=undefined && process.env.AWS_PUBLIC_KEY !=undefined && process.env.AWS_SECRET_KEY !=undefined && process.env.AWS_BUCKET_NAME != undefined ){
+              let credenciales = {
+                region:process.env.AWS_REGION,
+                credentials:{
+                  accessKeyId:process.env.AWS_PUBLIC_KEY,
+                  secretAccessKey:process.env.AWS_SECRET_KEY
+                },
+              }
+
+              let parametrosEliminacion = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key:nombreFotoEliminar[1],
+              };
+              const deleteCommand = new DeleteObjectCommand(parametrosEliminacion)
+              const s3Client = new S3Client(credenciales)
+              const resultado = await s3Client.send(deleteCommand)
+              if(!resultado){
+                return res.status(400).json({error:"No se pudo eliminar la imagen en el bucket s3",err:resultado})
+              }
+              const result = await Foto.delete({id:parseInt(req.params.id)});
+              if(result){
+                res.status(201).json({mensaje:"Foto eliminada!"})
+              }
+            } else {
+              return res.status(400).json({error:"No se pudo eliminar la foto guardada"})
+            }
+
           } catch (error) {
             console.log("error al eliminar foto de carpeta",error)
             return res.status(404).json({error:"Ha ocurrido un error al eliminar la foto"})
           }
         }
 
-
-        const result = await Foto.delete({id:parseInt(req.params.id)});
-
-        res.status(201).json({mensaje:"Foto eliminada!"})
     }catch(error){
         res.status(400).json({error:`Ha ocurrido un error al eliminar foto: ${error}`})
     }
-}
-
-export const cargarImagen = async (req:Request, res:Response) => {
-
-  try {
-
-      if(process.env.PROTOCOLO_HTTP != undefined && process.env.IP_SERVER != undefined){
-        res.status(200).json({
-          mensaje:`Imagen cargada con exito!!`,
-          path:process.env.PROTOCOLO_HTTP+process.env.IP_SERVER+'/'+req.file!.path,
-          nombreArchivo:req.file!.originalname      //lanza error possible undefined. el signo de exclamacion omite el error
-        })
-      }
-
-
-  } catch (error) {
-    res.status(400).json({error:"Ha ocurrido un error al cargar imagen"})
-  }
 }

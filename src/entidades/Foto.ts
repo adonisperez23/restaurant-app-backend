@@ -25,7 +25,7 @@ export class Foto extends BaseEntity {
         length:100
     })
     @IsNotEmpty({message:"Debe ingresar la direccion url de la foto"})
-    @MaxLength(100,{message:"La direccion url solo puede contener 100 caracteres"})
+    @MaxLength(200,{message:"La direccion url solo puede contener 100 caracteres"})
     @IsAscii()
     direccionUrl:string;
 
