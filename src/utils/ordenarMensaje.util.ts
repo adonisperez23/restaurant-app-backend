@@ -18,7 +18,7 @@ async function armarMensaje (fecha:string,telefono:string, cliente:string, pedid
 
   })
 
-  return `Restaurant los cinco mejores sabores\n
+  return `Rest. Los Cinco Sabores\n
 Fecha: ${formatoFecha}\n
 Cliente: ${cliente}\n
 Telefono: ${telefono}\n
@@ -28,12 +28,12 @@ ${pedidoOrdenado} \n
 MONTO TOTAL: $${montoTo}\n
 Cantidad Total de Productos: ${totalProductos}\n
 NOTA:\n
-Por favor espere que su pedido sea verificado por el Administrador. Luego de que usted reciba la confirmacion y el monto en bolivares de su pedido podrá realizar su pago. Muchas gracias\n
+Por favor espere que su pedido sea verificado por el Administrador.\n
 
 Datos de Pago movil: \n
-Tlf: 0424-9683161
-Ci: 18.026.098
-Bancos: Venezuela 0102 / Mercantil 0105`
+Tlf: 0414-8942782
+CI: 23.917.268 
+Bancos: Mercantil 0105`
 
 }
 
